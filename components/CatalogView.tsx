@@ -6,11 +6,15 @@ interface CatalogViewProps {
   items: CraftItem[];
   onAddToCart: (item: CraftItem) => void;
   cartItemIds: Set<number>;
+  onImageClick: (item: CraftItem) => void;
+  wishlist: Set<number>;
+  onToggleWishlist: (itemId: number) => void;
+  loadingImageIds: Set<number>;
 }
 
 const CATEGORIES: (Category | 'All')[] = ['All', 'Crochet', 'Decor', 'Random'];
 
-const CatalogView: React.FC<CatalogViewProps> = ({ items, onAddToCart, cartItemIds }) => {
+const CatalogView: React.FC<CatalogViewProps> = ({ items, onAddToCart, cartItemIds, onImageClick, wishlist, onToggleWishlist, loadingImageIds }) => {
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>('All');
 
   const filteredItems = useMemo(() => {
@@ -46,6 +50,10 @@ const CatalogView: React.FC<CatalogViewProps> = ({ items, onAddToCart, cartItemI
               item={item}
               onAddToCart={() => onAddToCart(item)}
               isInCart={cartItemIds.has(item.id)}
+              onImageClick={onImageClick}
+              isInWishlist={wishlist.has(item.id)}
+              onToggleWishlist={() => onToggleWishlist(item.id)}
+              loadingImageIds={loadingImageIds}
             />
           ))}
         </div>

@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { CraftItem } from '../types';
-import { HeartIcon, XIcon } from './Icons';
+import { HeartIcon, XIcon, WishlistHeartIcon } from './Icons';
 
 interface SwipeViewProps {
   items: CraftItem[];
   onAddToCart: (item: CraftItem) => void;
   cartItemIds: Set<number>;
+  onImageClick: (item: CraftItem) => void;
+  wishlist: Set<number>;
+  onToggleWishlist: (itemId: number) => void;
+  loadingImageIds: Set<number>;
 }
 
 type AnimationState = 'in' | 'out-left' | 'out-right' | 'idle';
 
-const SwipeView: React.FC<SwipeViewProps> = ({ items, onAddToCart, cartItemIds }) => {
+const SwipeView: React.FC<SwipeViewProps> = ({ items, onAddToCart, cartItemIds, onImageClick, wishlist, onToggleWishlist, loadingImageIds }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [animation, setAnimation] = useState<AnimationState>('in');
   
@@ -69,6 +73,8 @@ const SwipeView: React.FC<SwipeViewProps> = ({ items, onAddToCart, cartItemIds }
       'idle': 'opacity-0',
   };
 
+  const isLoading = currentItem && loadingImageIds.has(currentItem.id);
+
   return (
     <div className="flex flex-col items-center justify-center h-full pt-4 pb-12">
        <style>{`
@@ -92,10 +98,30 @@ const SwipeView: React.FC<SwipeViewProps> = ({ items, onAddToCart, cartItemIds }
         >
             <div className="bg-brand-white-ish rounded-2xl shadow-xl overflow-hidden flex flex-col group">
                 <div className="relative">
-                    <img src={currentItem.imageUrl} alt={currentItem.name} className="w-full h-72 object-cover" />
-                    <div className="absolute top-2 right-2 bg-brand-accent text-brand-white-ish font-bold text-sm px-2 py-1 rounded-full">
-                        R {currentItem.price.toFixed(2)}
-                    </div>
+                    <button
+                        onClick={() => onToggleWishlist(currentItem.id)}
+                        className="absolute top-3 left-3 z-10 p-2 bg-brand-white-ish/70 rounded-full text-brand-accent hover:scale-110 transition-transform"
+                        aria-label="Toggle Wishlist"
+                    >
+                        <WishlistHeartIcon filled={wishlist.has(currentItem.id)} className="w-6 h-6" />
+                    </button>
+                    <button 
+                      className={`w-full focus:outline-none ${currentItem.modelUrl ? '' : 'pointer-events-none'}`} 
+                      onClick={() => onImageClick(currentItem)}
+                    >
+                        <img src={currentItem.imageUrl} alt={currentItem.name} className="w-full h-72 object-cover" />
+                        {isLoading && (
+                          <div className="absolute inset-0 bg-brand-background/70 animate-pulse" />
+                        )}
+                        <div className="absolute top-2 right-2 bg-brand-accent text-brand-white-ish font-bold text-sm px-2 py-1 rounded-full">
+                            R {currentItem.price.toFixed(2)}
+                        </div>
+                        {currentItem.modelUrl && (
+                          <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs font-bold px-2 py-1 rounded">
+                            3D
+                          </div>
+                        )}
+                    </button>
                 </div>
                 <div className="p-4 flex flex-col flex-grow text-center">
                     <h3 className="text-2xl font-bold font-display text-brand-text">{currentItem.name}</h3>

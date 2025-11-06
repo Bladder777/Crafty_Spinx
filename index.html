@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crafty Spinx Catalog</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 3D Model Viewer -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
     <style>
       :root, .theme-pastel {
         --color-bg: #FFF8F0;
@@ -31,6 +33,36 @@
         --color-accent: #FFA500;
         --color-white-ish: #FFFFFF;
       }
+
+      /* --- Smooth Scrolling & Custom Scrollbar --- */
+      html {
+        scroll-behavior: smooth;
+      }
+
+      /* For Firefox */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-secondary) var(--color-bg);
+      }
+      
+      /* For Webkit-based browsers (Chrome, Safari) */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--color-bg);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background-color: var(--color-secondary);
+        border-radius: 10px;
+        border: 2px solid var(--color-bg);
+      }
+       ::-webkit-scrollbar-thumb:hover {
+        background-color: var(--color-primary);
+      }
     </style>
     <script>
       tailwind.config = {
@@ -50,12 +82,22 @@
             },
              animation: {
               'fade-in': 'fade-in 0.5s ease-in-out forwards',
+              'item-in': 'item-in 0.4s ease-out forwards',
+              'price-pop': 'price-pop 0.35s ease-out',
             },
             keyframes: {
               'fade-in': {
                 '0%': { opacity: 0, transform: 'translateY(10px)' },
                 '100%': { opacity: 1, transform: 'translateY(0)' },
-              }
+              },
+              'item-in': {
+                'from': { opacity: 0, transform: 'translateX(-15px)' },
+                'to': { opacity: 1, transform: 'translateX(0)' },
+              },
+              'price-pop': {
+                '0%, 100%': { transform: 'scale(1)' },
+                '50%': { transform: 'scale(1.08)' },
+              },
             }
           }
         }

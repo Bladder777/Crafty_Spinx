@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { CraftItem } from '../types';
 
 interface CartViewProps {
@@ -11,10 +11,17 @@ const CartView: React.FC<CartViewProps> = ({ cartItems, onSendInquiry, onRemoveI
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [pricePopKey, setPricePopKey] = useState(0);
 
   const totalPrice = useMemo(() => {
     return cartItems.reduce((sum, item) => sum + item.price, 0);
   }, [cartItems]);
+
+  useEffect(() => {
+    if (totalPrice > 0) {
+      setPricePopKey(key => key + 1);
+    }
+  }, [totalPrice]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,8 +58,12 @@ const CartView: React.FC<CartViewProps> = ({ cartItems, onSendInquiry, onRemoveI
       <div className="bg-brand-white-ish rounded-2xl shadow-lg p-6 md:p-8">
         <h2 className="text-3xl font-display text-brand-accent mb-6 border-b-2 border-brand-primary pb-4">Your Cart</h2>
         <div className="space-y-4 mb-6 max-h-64 overflow-y-auto pr-2">
-          {cartItems.map(item => (
-            <div key={item.id} className="flex items-center justify-between bg-brand-background p-3 rounded-lg">
+          {cartItems.map((item, index) => (
+            <div 
+              key={item.id} 
+              className="flex items-center justify-between bg-brand-background p-3 rounded-lg animate-item-in"
+              style={{ animationDelay: `${index * 50}ms`}}
+            >
               <div className="flex items-center space-x-4">
                 <img src={item.imageUrl} alt={item.name} className="w-16 h-16 rounded-md object-cover" />
                 <div>
@@ -70,7 +81,7 @@ const CartView: React.FC<CartViewProps> = ({ cartItems, onSendInquiry, onRemoveI
         </div>
         
         <div className="text-right font-display text-2xl text-brand-text py-4 border-t-2 border-brand-primary">
-          Total: <span className="font-bold text-brand-accent">R {totalPrice.toFixed(2)}</span>
+          Total: <span key={pricePopKey} className="font-bold text-brand-accent inline-block animate-price-pop">R {totalPrice.toFixed(2)}</span>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">

@@ -1,16 +1,18 @@
 import React from 'react';
 import { View } from '../types';
-import { CatalogIcon, OrderIcon } from './Icons';
+import { CatalogNavIcon, WishlistNavIcon, OrderIcon } from './Icons';
 
 interface NavbarProps {
   currentView: View;
   setCurrentView: (view: View) => void;
   itemCount: number;
+  wishlistCount: number;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ currentView, setCurrentView, itemCount }) => {
+const Navbar: React.FC<NavbarProps> = ({ currentView, setCurrentView, itemCount, wishlistCount }) => {
   const navItems = [
-    { view: 'catalog', label: 'Catalog', icon: <CatalogIcon /> },
+    { view: 'catalog', label: 'Catalog', icon: <CatalogNavIcon /> },
+    { view: 'wishlist', label: 'Wishlist', icon: <WishlistNavIcon /> },
     { view: 'cart', label: 'Cart', icon: <OrderIcon /> },
   ];
 
@@ -30,6 +32,11 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setCurrentView, itemCount 
                 {item.view === 'cart' && itemCount > 0 && (
                   <span className="absolute -top-1 -right-2 bg-brand-accent text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {itemCount}
+                  </span>
+                )}
+                 {item.view === 'wishlist' && wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-2 bg-brand-accent text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                    {wishlistCount}
                   </span>
                 )}
               </div>

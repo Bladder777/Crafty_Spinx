@@ -7,6 +7,7 @@ export interface CraftItem {
   price: number;
   imageUrl: string;
   category: Category;
+  modelUrl?: string;
 }
 
-export type View = 'catalog' | 'cart';
+export type View = 'catalog' | 'cart' | 'wishlist';
