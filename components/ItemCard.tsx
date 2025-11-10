@@ -1,55 +1,70 @@
 import React from 'react';
 import { CraftItem } from '../types';
-import { WishlistHeartIcon } from './Icons';
+import { WishlistHeartIcon, PencilIcon, TrashIcon } from './Icons';
 
 interface ItemCardProps {
   item: CraftItem;
   onAddToCart: () => void;
   isInCart: boolean;
-  onImageClick: (item: CraftItem) => void;
   isInWishlist: boolean;
   onToggleWishlist: () => void;
-  loadingImageIds: Set<number>;
+  onEdit: (item: CraftItem) => void;
+  onDeleteItem: (itemId: number) => void;
+  isAdminMode: boolean;
 }
 
-const ItemCard: React.FC<ItemCardProps> = ({ item, onAddToCart, isInCart, onImageClick, isInWishlist, onToggleWishlist, loadingImageIds }) => {
-  const isLoading = loadingImageIds.has(item.id);
+const ItemCard: React.FC<ItemCardProps> = ({ item, onAddToCart, isInCart, isInWishlist, onToggleWishlist, onEdit, onDeleteItem, isAdminMode }) => {
   
   return (
     <div className="bg-brand-white-ish rounded-xl shadow-lg overflow-hidden flex flex-col group transition-transform duration-300 hover:scale-105">
       <div 
         className="relative overflow-hidden"
       >
-        <button
-            onClick={(e) => {
-                e.stopPropagation(); 
-                onToggleWishlist();
-            }}
-            className="absolute top-2 left-2 z-10 p-1.5 bg-brand-white-ish/70 rounded-full text-brand-accent hover:scale-110 transition-transform"
-            aria-label="Toggle Wishlist"
-        >
-            <WishlistHeartIcon filled={isInWishlist} className="w-5 h-5" />
-        </button>
-        <div 
-          className={`${item.modelUrl ? 'cursor-pointer' : ''}`}
-          onClick={() => onImageClick(item)}
-        >
+        <div className="absolute top-2 left-2 z-10 flex flex-col gap-2">
+            <button
+                onClick={(e) => {
+                    e.stopPropagation(); 
+                    onToggleWishlist();
+                }}
+                className="p-1.5 bg-brand-white-ish/70 rounded-full text-brand-accent hover:scale-110 transition-transform"
+                aria-label="Toggle Wishlist"
+            >
+                <WishlistHeartIcon filled={isInWishlist} className="w-5 h-5" />
+            </button>
+            {isAdminMode && (
+              <>
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(item);
+                    }}
+                    className="p-1.5 bg-brand-white-ish/70 rounded-full text-brand-text hover:text-brand-accent hover:scale-110 transition-transform"
+                    aria-label="Edit Item"
+                >
+                    <PencilIcon className="w-5 h-5" />
+                </button>
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteItem(item.id);
+                    }}
+                    className="p-1.5 bg-brand-white-ish/70 rounded-full text-red-500 hover:bg-red-500 hover:text-white hover:scale-110 transition-all"
+                    aria-label="Delete Item"
+                >
+                    <TrashIcon className="w-5 h-5" />
+                </button>
+              </>
+            )}
+        </div>
+        <div >
           <img 
             src={item.imageUrl} 
             alt={item.name} 
             className="w-full h-40 md:h-48 object-cover transition-all duration-300 group-hover:scale-110"
           />
-           {isLoading && (
-            <div className="absolute inset-0 bg-brand-background/70 animate-pulse" />
-          )}
           <div className="absolute top-2 right-2 bg-brand-accent text-brand-white-ish font-bold text-sm px-2 py-1 rounded-full">
             R {item.price.toFixed(2)}
           </div>
-          {item.modelUrl && (
-            <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs font-bold px-2 py-1 rounded">
-              3D
-            </div>
-          )}
         </div>
       </div>
       <div className="p-3 flex flex-col flex-grow">

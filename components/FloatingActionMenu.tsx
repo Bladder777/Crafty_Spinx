@@ -1,27 +1,39 @@
 import React, { useState } from 'react';
-import { GridViewIcon, SwipeViewIcon, SettingsIcon, PlusIcon } from './Icons';
+import { GridViewIcon, SwipeViewIcon, SettingsIcon, PlusIcon, AddItemIcon } from './Icons';
 
 interface FloatingActionMenuProps {
   isGridMode: boolean;
   onToggleView: () => void;
   onOpenSettings: () => void;
+  onAddItem: () => void;
+  isAdminMode: boolean;
 }
 
-const FloatingActionMenu: React.FC<FloatingActionMenuProps> = ({ isGridMode, onToggleView, onOpenSettings }) => {
+const FloatingActionMenu: React.FC<FloatingActionMenuProps> = ({ isGridMode, onToggleView, onOpenSettings, onAddItem, isAdminMode }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
     {
+      label: 'Add New Item',
+      icon: <AddItemIcon />,
+      action: onAddItem,
+      adminOnly: true,
+    },
+    {
       label: isGridMode ? 'Switch to Swipe View' : 'Switch to Grid View',
       icon: isGridMode ? <SwipeViewIcon /> : <GridViewIcon />,
       action: onToggleView,
+      adminOnly: false,
     },
     {
       label: 'Open Settings',
       icon: <SettingsIcon />,
       action: onOpenSettings,
+      adminOnly: false,
     },
   ];
+
+  const visibleItems = menuItems.filter(item => !item.adminOnly || isAdminMode);
 
   return (
     <div className="fixed bottom-24 right-6 md:bottom-8 md:right-8 z-40 flex flex-col items-center gap-4">
@@ -31,7 +43,7 @@ const FloatingActionMenu: React.FC<FloatingActionMenuProps> = ({ isGridMode, onT
           isOpen ? 'opacity-100' : 'opacity-0 -translate-y-2 pointer-events-none'
         }`}
       >
-        {menuItems.map((item, index) => (
+        {visibleItems.map((item, index) => (
           <button
             key={index}
             onClick={() => {

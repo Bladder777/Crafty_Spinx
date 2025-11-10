@@ -7,11 +7,12 @@ interface WishlistViewProps {
   onToggleWishlist: (itemId: number) => void;
   onAddToCart: (item: CraftItem) => void;
   cartItemIds: Set<number>;
-  onImageClick: (item: CraftItem) => void;
-  loadingImageIds: Set<number>;
+  onEditItem: (item: CraftItem) => void;
+  onDeleteItem: (itemId: number) => void;
+  isAdminMode: boolean;
 }
 
-const WishlistView: React.FC<WishlistViewProps> = ({ wishlistItems, onToggleWishlist, onAddToCart, cartItemIds, onImageClick, loadingImageIds }) => {
+const WishlistView: React.FC<WishlistViewProps> = ({ wishlistItems, onToggleWishlist, onAddToCart, cartItemIds, onEditItem, onDeleteItem, isAdminMode }) => {
   if (wishlistItems.length === 0) {
     return (
       <div className="text-center p-8 bg-brand-white-ish rounded-2xl shadow-lg max-w-lg mx-auto animate-fade-in">
@@ -32,10 +33,11 @@ const WishlistView: React.FC<WishlistViewProps> = ({ wishlistItems, onToggleWish
             item={item}
             onAddToCart={() => onAddToCart(item)}
             isInCart={cartItemIds.has(item.id)}
-            onImageClick={onImageClick}
             isInWishlist={true}
             onToggleWishlist={() => onToggleWishlist(item.id)}
-            loadingImageIds={loadingImageIds}
+            onEdit={onEditItem}
+            onDeleteItem={onDeleteItem}
+            isAdminMode={isAdminMode}
           />
         ))}
       </div>

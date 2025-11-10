@@ -6,14 +6,6 @@ import React, { useEffect } from 'react';
 import { CraftItem } from '../types';
 import { XIcon } from './Icons';
 
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'model-viewer': any;
-    }
-  }
-}
-
 interface ThreeDViewModalProps {
   item: CraftItem | null;
   onClose: () => void;
@@ -55,14 +47,15 @@ const ThreeDViewModal: React.FC<ThreeDViewModalProps> = ({ item, onClose }) => {
         <h2 className="text-2xl font-display text-brand-accent mb-4 text-center">{item.name}</h2>
 
         <div className="relative w-full aspect-square bg-brand-background rounded-lg overflow-hidden">
+          {/* FIX: With the global JSX types fixed, the type augmentation for `model-viewer` works, so the custom element can be used directly. */}
           <model-viewer
             src={item.modelUrl}
             alt={`3D model of ${item.name}`}
             ar
-            ar-modes="webxr scene-viewer quick-look"
-            camera-controls
-            auto-rotate
-            shadow-intensity="1"
+            arModes="webxr scene-viewer quick-look"
+            cameraControls
+            autoRotate
+            shadowIntensity={1}
             style={{ width: '100%', height: '100%' }}
           >
              <div className="absolute top-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded">

@@ -7,12 +7,13 @@ import Navbar from './components/Navbar';
 import SettingsModal from './components/SettingsModal';
 import SwipeView from './components/SwipeView';
 import FloatingActionMenu from './components/FloatingActionMenu';
-import ThreeDViewModal from './components/ThreeDViewModal';
 import WishlistView from './components/WishlistView';
-import { generateProductImage } from './services/geminiService';
+import EditItemModal from './components/EditItemModal';
+import AddItemModal from './components/AddItemModal';
+import ConfirmationModal from './components/ConfirmationModal';
 
 const App: React.FC = () => {
-  const [items, setItems] = useState<CraftItem[]>(CRAFT_ITEMS);
+  const [items, setItems] = useState<CraftItem[]>([]);
   const [cartItems, setCartItems] = useState<CraftItem[]>([]);
   const [wishlist, setWishlist] = useState<Set<number>>(() => {
     try {
@@ -28,46 +29,37 @@ const App: React.FC = () => {
   const [catalogMode, setCatalogMode] = useState<'swipe' | 'grid'>('swipe');
   const [theme, setTheme] = useState('pastel');
   const [isSettingsOpen, setSettingsOpen] = useState(false);
-  const [itemFor3DView, setItemFor3DView] = useState<CraftItem | null>(null);
-  const [loadingImageIds, setLoadingImageIds] = useState<Set<number>>(new Set());
+  const [editingItem, setEditingItem] = useState<CraftItem | null>(null);
+  const [isAddItemModalOpen, setAddItemModalOpen] = useState(false);
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [confirmation, setConfirmation] = useState<{ message: string; onConfirm: () => void; } | null>(null);
 
+
+  // Load all item data from localStorage on initial mount
   useEffect(() => {
-    const loadItemImages = async () => {
-      const processItem = async (item: CraftItem) => {
-        const cacheKey = `crafty-spinx-image-${item.id}`;
+    try {
+      const cachedItemsJSON = window.localStorage.getItem('crafty-spinx-items');
+      if (cachedItemsJSON) {
+        setItems(JSON.parse(cachedItemsJSON));
+      } else {
+        setItems(CRAFT_ITEMS);
+      }
+    } catch (error) {
+      console.error("Could not load items from localStorage, using defaults.", error);
+      setItems(CRAFT_ITEMS);
+    }
+  }, []);
+
+  // Persist the entire item list to localStorage whenever it changes
+  useEffect(() => {
+    if (items.length > 0) { // Avoid saving an empty array on initial load
         try {
-          const cachedImage = window.localStorage.getItem(cacheKey);
-          if (cachedImage) {
-            setItems(prevItems => prevItems.map(i => i.id === item.id ? { ...i, imageUrl: cachedImage } : i));
-            return;
-          }
-
-          setLoadingImageIds(prev => new Set(prev).add(item.id));
-          // Stagger API calls slightly
-          await new Promise(res => setTimeout(res, Math.random() * 500));
-          const newImageUrl = await generateProductImage(item.name, item.description);
-
-          if (newImageUrl) {
-            window.localStorage.setItem(cacheKey, newImageUrl);
-            setItems(prevItems => prevItems.map(i => i.id === item.id ? { ...i, imageUrl: newImageUrl } : i));
-          }
+            window.localStorage.setItem('crafty-spinx-items', JSON.stringify(items));
         } catch (error) {
-          console.error(`Failed to load or generate image for "${item.name}":`, error);
-        } finally {
-            setLoadingImageIds(prev => {
-                const next = new Set(prev);
-                next.delete(item.id);
-                return next;
-            });
+            console.error("Could not save items to localStorage", error);
         }
-      };
-      
-      // Process all items concurrently without blocking the UI
-      CRAFT_ITEMS.forEach(item => processItem(item));
-    };
-
-    loadItemImages();
-  }, []); // Empty dependency array means this runs only once on mount
+    }
+  }, [items]);
 
   useEffect(() => {
     try {
@@ -77,6 +69,21 @@ const App: React.FC = () => {
     }
   }, [wishlist]);
 
+  const handleAdminLogin = (password: string) => {
+    if (password === '12345678') {
+      setIsAdminMode(true);
+      alert("Admin mode enabled.");
+      setSettingsOpen(false);
+    } else {
+      alert("Incorrect password.");
+    }
+  };
+
+  const handleAdminLogout = () => {
+    setIsAdminMode(false);
+    alert("Admin mode disabled.");
+    setSettingsOpen(false);
+  };
 
   const handleAddToCart = (item: CraftItem) => {
     if (!cartItems.some(i => i.id === item.id)) {
@@ -109,11 +116,79 @@ const App: React.FC = () => {
     setTheme(newTheme);
     document.documentElement.className = `theme-${newTheme}`;
   }
+  
+  const handleSaveItem = (updatedItem: CraftItem) => {
+    // Update the master list of items
+    setItems(prevItems =>
+        prevItems.map(i => (i.id === updatedItem.id ? updatedItem : i))
+    );
+    // FIX: Also update the item if it's in the cart to prevent stale data
+    setCartItems(prevCartItems =>
+      prevCartItems.map(cartItem => 
+        cartItem.id === updatedItem.id ? updatedItem : cartItem
+      )
+    );
+    setEditingItem(null);
+  };
+  
+  const handleDeleteItem = (itemId: number) => {
+    requestConfirmation(
+        'Are you sure you want to permanently delete this item? This action cannot be undone.',
+        () => {
+            setItems(prev => prev.filter(i => i.id !== itemId));
+            setCartItems(prev => prev.filter(i => i.id !== itemId));
+            setWishlist(prev => {
+                const newWishlist = new Set(prev);
+                newWishlist.delete(itemId);
+                return newWishlist;
+            });
+        }
+    );
+  };
 
-  const handleImageClick = (item: CraftItem) => {
-    if (item.modelUrl) {
-      setItemFor3DView(item);
+  const handleAddItem = (newItemData: Omit<CraftItem, 'id'>) => {
+    const newId = Math.max(0, ...items.map(i => i.id)) + 1;
+    const newItem: CraftItem = { ...newItemData, id: newId };
+    setItems(prev => [newItem, ...prev]);
+    setAddItemModalOpen(false);
+  };
+
+  const handleImportItems = (jsonString: string) => {
+    try {
+        const importedData = JSON.parse(jsonString);
+        // Basic validation
+        if (Array.isArray(importedData) && importedData.every(item => 'id' in item && 'name' in item)) {
+            setItems(importedData);
+            alert(`${importedData.length} items imported successfully! The catalog has been updated.`);
+            setSettingsOpen(false);
+        } else {
+            throw new Error("Invalid JSON structure.");
+        }
+    } catch (error) {
+        console.error("Failed to import and parse JSON:", error);
+        alert("Import failed. Please ensure the file is a valid 'craft-items.json' file.");
     }
+  };
+  
+  const handleResetToDefaults = () => {
+    requestConfirmation(
+        'Are you sure you want to reset all item data to the original defaults? All local changes will be lost.',
+        () => {
+            setItems(CRAFT_ITEMS);
+            alert("Catalog has been reset to factory defaults.");
+            setSettingsOpen(false);
+        }
+    );
+  };
+
+  const requestConfirmation = (message: string, onConfirm: () => void) => {
+    setConfirmation({
+        message,
+        onConfirm: () => {
+            onConfirm();
+            setConfirmation(null);
+        }
+    });
   };
 
   const wishlistItems = items.filter(item => wishlist.has(item.id));
@@ -122,7 +197,7 @@ const App: React.FC = () => {
   return (
     <div className={`theme-${theme} min-h-screen bg-brand-background font-body text-brand-text flex flex-col`}>
       <header className="p-4 flex justify-center items-center shadow-md bg-brand-white-ish/70 backdrop-blur-sm sticky top-0 z-20">
-        <div className="text-center">
+        <div className="text-center select-none">
             <h1 className="text-3xl md:text-4xl font-display text-brand-accent">Crafty Spinx</h1>
             <p className="text-sm text-gray-500">Handmade with love</p>
         </div>
@@ -135,20 +210,22 @@ const App: React.FC = () => {
               items={items} 
               onAddToCart={handleAddToCart}
               cartItemIds={cartItemIds}
-              onImageClick={handleImageClick}
               wishlist={wishlist}
               onToggleWishlist={handleToggleWishlist}
-              loadingImageIds={loadingImageIds}
+              onEditItem={setEditingItem}
+              onDeleteItem={handleDeleteItem}
+              isAdminMode={isAdminMode}
             />
           ) : (
             <CatalogView 
               items={items} 
               onAddToCart={handleAddToCart} 
               cartItemIds={cartItemIds}
-              onImageClick={handleImageClick}
               wishlist={wishlist}
               onToggleWishlist={handleToggleWishlist}
-              loadingImageIds={loadingImageIds}
+              onEditItem={setEditingItem}
+              onDeleteItem={handleDeleteItem}
+              isAdminMode={isAdminMode}
             />
           )
         )}
@@ -165,8 +242,9 @@ const App: React.FC = () => {
                 onToggleWishlist={handleToggleWishlist}
                 onAddToCart={handleAddToCart}
                 cartItemIds={cartItemIds}
-                onImageClick={handleImageClick}
-                loadingImageIds={loadingImageIds}
+                onEditItem={setEditingItem}
+                onDeleteItem={handleDeleteItem}
+                isAdminMode={isAdminMode}
             />
         )}
       </main>
@@ -176,7 +254,15 @@ const App: React.FC = () => {
             isGridMode={catalogMode === 'grid'}
             onToggleView={() => setCatalogMode(mode => mode === 'grid' ? 'swipe' : 'grid')}
             onOpenSettings={() => setSettingsOpen(true)}
+            onAddItem={() => setAddItemModalOpen(true)}
+            isAdminMode={isAdminMode}
         />
+      )}
+
+      {isAdminMode && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-yellow-300 text-yellow-800 px-4 py-1 rounded-full text-sm font-bold shadow-lg animate-fade-in z-30">
+            Admin Mode Enabled
+        </div>
       )}
 
       <Navbar 
@@ -191,11 +277,33 @@ const App: React.FC = () => {
         onClose={() => setSettingsOpen(false)}
         currentTheme={theme}
         onSetTheme={handleSetTheme}
+        isAdminMode={isAdminMode}
+        onAdminLogin={handleAdminLogin}
+        onAdminLogout={handleAdminLogout}
+        items={items}
+        onImportItems={handleImportItems}
+        onResetToDefaults={handleResetToDefaults}
+        requestConfirmation={requestConfirmation}
+      />
+      
+      <EditItemModal 
+        item={editingItem}
+        onClose={() => setEditingItem(null)}
+        onSave={handleSaveItem}
+      />
+      
+      <AddItemModal
+        isOpen={isAddItemModalOpen}
+        onClose={() => setAddItemModalOpen(false)}
+        onSave={handleAddItem}
       />
 
-      <ThreeDViewModal 
-        item={itemFor3DView}
-        onClose={() => setItemFor3DView(null)}
+      <ConfirmationModal
+        isOpen={!!confirmation}
+        title="Please Confirm"
+        message={confirmation?.message || ''}
+        onConfirm={confirmation?.onConfirm}
+        onCancel={() => setConfirmation(null)}
       />
     </div>
   );

@@ -1,8 +1,8 @@
-// FIX: Corrected the triple-slash directive to reference the standard "react" types.
-// The previous reference to "react/global" was invalid and caused a "type definition not found" error.
-// Using the standard "react" reference loads the necessary JSX type definitions globally,
-// which is required due to a likely misconfiguration in tsconfig.json that prevents automatic type acquisition.
-/// <reference types="react" />
+// FIX: Removed the problematic triple-slash directive for React types.
+// This directive was causing a type resolution failure, likely by conflicting
+// with the project's tsconfig.json, which prevented TypeScript from
+// recognizing JSX syntax across the entire application. Removing it allows
+// the standard type acquisition via `import React` to function correctly.
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';

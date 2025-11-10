@@ -2,8 +2,6 @@ import { CraftItem } from './types';
 
 // Placeholder image for all thumbnails
 const PLACEHOLDER_IMAGE = 'https://i.ibb.co/8M3b106/pyramid.jpg';
-// Placeholder 3D model for all relevant items
-const PLACEHOLDER_MODEL = 'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
 
 export const CRAFT_ITEMS: CraftItem[] = [
     // Crochet
@@ -14,7 +12,6 @@ export const CRAFT_ITEMS: CraftItem[] = [
       price: 350.00,
       imageUrl: PLACEHOLDER_IMAGE,
       category: 'Crochet',
-      modelUrl: PLACEHOLDER_MODEL,
     },
     {
       id: 2,
@@ -23,7 +20,6 @@ export const CRAFT_ITEMS: CraftItem[] = [
       price: 280.00,
       imageUrl: PLACEHOLDER_IMAGE,
       category: 'Crochet',
-      modelUrl: PLACEHOLDER_MODEL,
     },
     {
       id: 3,
@@ -32,7 +28,6 @@ export const CRAFT_ITEMS: CraftItem[] = [
       price: 320.00,
       imageUrl: PLACEHOLDER_IMAGE,
       category: 'Crochet',
-      modelUrl: PLACEHOLDER_MODEL,
     },
     {
       id: 4,
@@ -41,7 +36,6 @@ export const CRAFT_ITEMS: CraftItem[] = [
       price: 300.00,
       imageUrl: PLACEHOLDER_IMAGE,
       category: 'Crochet',
-      modelUrl: PLACEHOLDER_MODEL,
     },
     {
       id: 5,
@@ -50,7 +44,6 @@ export const CRAFT_ITEMS: CraftItem[] = [
       price: 400.00,
       imageUrl: PLACEHOLDER_IMAGE,
       category: 'Crochet',
-      modelUrl: PLACEHOLDER_MODEL,
     },
     {
       id: 6,
@@ -59,7 +52,6 @@ export const CRAFT_ITEMS: CraftItem[] = [
       price: 380.00,
       imageUrl: PLACEHOLDER_IMAGE,
       category: 'Crochet',
-      modelUrl: PLACEHOLDER_MODEL,
     },
     {
       id: 7,
@@ -68,7 +60,6 @@ export const CRAFT_ITEMS: CraftItem[] = [
       price: 450.00,
       imageUrl: PLACEHOLDER_IMAGE,
       category: 'Crochet',
-      modelUrl: PLACEHOLDER_MODEL,
     },
     // Decor
     {
@@ -143,6 +134,5 @@ export const CRAFT_ITEMS: CraftItem[] = [
       price: 200.00,
       imageUrl: PLACEHOLDER_IMAGE,
       category: 'Crochet',
-       modelUrl: PLACEHOLDER_MODEL,
     }
 ];
